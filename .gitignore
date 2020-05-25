@@ -1,0 +1,20 @@
+.egit
+
+*.tmp
+*.swp
+~*
+*.o
+*.pyc
+*.swo
+*.DS_Store
+*._*
+*.kpf
+*.log
+
+# for SlickEdit projects
+/*.vpj
+/*.vpw
+/*.vpwhist
+/*.vtg
+.sass-cache
+Run/
