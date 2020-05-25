@@ -9,17 +9,12 @@ M = Model()
 
 
 
-wall1 = Assembly()
-for i in range(0,240,16):
-  wall1(translate([i,0,0])(cube([1.5, 3.5, 96])))
-
-wall2 = Assembly()
-for i in range(0,240,16):
-  wall2(translate([i,240,0])(cube([1.5, 3.5, 96])))
+M.Wall(X=0, Y=0, A=0, L=230)
+M.Wall(X=230, Y=0, A=90, L=230, StartOffset=True, EndOffset=True)
+M.Wall(X=230, Y=230, A=180, L=230)
+M.Wall(X=0, Y=230, A=270, L=230, StartOffset=True, EndOffset=True)
 
 
-M(wall1)
-M(wall2)
 
 M.Write(__file__ + '.scad')
 

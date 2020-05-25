@@ -2,7 +2,7 @@
 
 from solid import scad_render
 from solid.objects import cube, cylinder, difference, translate, union
-from solid.utils import right, part
+from solid.utils import right, part, rotate, color
 
 
 
@@ -11,8 +11,8 @@ class Part():
     super().__init__()
     self.Things = []
 
-  def __call__(self, thing):
-    self.Things.append(thing)
+  def __call__(self, *things):
+    self.Things += things
 
   def Generate(self):
     p = part()
@@ -32,6 +32,7 @@ class Model(Part):
     
   def __call__(self, thing):
     self.Things.append(thing)
+    return thing
 
   def Render(self):
     p = self.Generate()
@@ -43,9 +44,14 @@ class Model(Part):
     with open(path, 'wt') as f:
       f.write(self.Output)
 
+      
+  def Wall(self, *args, **kwargs):
+    return self(Modules.Wall(*args, **kwargs))
+   
 
-class Assembly(Part):
-  pass
+class Modules():
+  from .Wall import Wall
+
 
 
 
