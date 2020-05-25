@@ -2,7 +2,7 @@
 # vim:fileencoding=utf-8:ts=2:sw=2:sts=2:expandtab
 
 
-from Core import *
+from BuildStruct import *
 
 
 M = Model()
