@@ -14,12 +14,13 @@ def wallrange(start, stop, *, StudSpacing=16, StudThickness=1.5):
 
 
 class Wall(Part):
-  def __init__(self, *, X, Y, A, L, StartOffset=False, EndOffset=False):
+  def __init__(self, *, X, Y, A, L, H, StartOffset=False, EndOffset=False):
     super().__init__()
     self.X = X
     self.Y = Y
     self.A = A
-    self.L = L    
+    self.L = L
+    self.H = H
     self.C = [0.85, 0.7, 0.45]
     self.StudSpacing = 16
     self.StudThickness = 1.5
@@ -38,10 +39,13 @@ class Wall(Part):
     offset = 0 
     while offset < self.L - self.StudThickness - self.EndOffset:
       x = max(offset, self.StartOffset)
-      p(translate([x,0,0])(cube([self.StudThickness, self.StudWidth, 96])))
+      p(translate([x,0,self.StudThickness])(cube([self.StudThickness, self.StudWidth, self.H-self.StudThickness*2])))
       offset += self.StudSpacing
     x = self.L - self.StudThickness - self.EndOffset  
-    p(translate([x,0,0])(cube([self.StudThickness, self.StudWidth, 96])))
+    p(translate([x,0,self.StudThickness])(cube([self.StudThickness, self.StudWidth, self.H-self.StudThickness*2])))
+
+    p(translate([self.StartOffset,0,0])(cube([self.L - self.StartOffset - self.EndOffset, self.StudWidth, self.StudThickness])))
+    p(translate([self.StartOffset,0,self.H-self.StudThickness])(cube([self.L - self.StartOffset - self.EndOffset, self.StudWidth, self.StudThickness])))
 
     r = rotate(self.A)(p)
     t = translate([self.X, self.Y, 0])(r)
