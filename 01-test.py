@@ -12,11 +12,17 @@ import BuildStruct as BS
 
 Model = BS.Model(Path=__file__+'.scad')
 
-Model['Building'] = BS.Building()
-Model['Building'].AddPerimeterSegment(Angle=0, Length=40*12)
-Model['Building'].AddPerimeterSegment(Angle=90, Length=24*12)
-Model['Building'].AddPerimeterSegment(Angle=180, Length=40*12)
-Model['Building'].AddPerimeterSegment(Angle=270, Length=24*12)
+Building = Model['Building'] = BS.Building()
+Building.SillPlateThickness = 2
+Building.ExteriorWallWidth = 6
+
+Building.AddPerimeterSegment(Angle=0, Length=40*12)
+Building.AddPerimeterSegment(Angle=90, Length=24*12)
+Building.AddPerimeterSegment(Angle=180, Length=40*12)
+Building.AddPerimeterSegment(Angle=270, Length=24*12)
+
+
+
 
 
 

@@ -13,6 +13,7 @@ import math
 
 class NodeType(dict):
   nextval = 0
+  Parent = None
   def __init__(self):
     super().__init__()
     self.Parent = None
@@ -28,6 +29,11 @@ class NodeType(dict):
     value.Parent = self
     super().__setitem__(key, value)
 
+  def __setattr__(self, key, value):
+    if not hasattr(type(self), key):
+      raise AttributeError(f'Attributes must first be defined at the type level on object {self} of type {type(self)} with attribute {key}')
+    return super().__setattr__(key, value)
+
   def Die(self, message):
     print()
     print('ⓧ  ' + str(message))
@@ -35,10 +41,12 @@ class NodeType(dict):
     sys.exit(1)
 
 class Model(NodeType):
+  SEGMENTS = 48
+  Output = None
+  Path = None
+
   def __init__(self, *, Path):
     super().__init__()
-    self.SEGMENTS = 48
-    self.Output = None
     self.Path = Path
     
   def __call__(self):
@@ -68,11 +76,17 @@ class PerimeterSegment():
     self.Y2 = None
 
 class Building(NodeType):
+  Perimeter = None
+  ExteriorWallWidth = 5.5
+  SillPlateThickness = 1.5
+  SlabThickness = 6
+  
   def __init__(self):
     super().__init__()
     self.Perimeter = []
     self['Foundation'] = Foundation()
     self['SillPlate'] = SillPlate()
+    self['ExteriorWalls1'] = ExteriorWalls()
 
   def AddPerimeterSegment(self, *, Angle, Length):
     self.Perimeter.append(PerimeterSegment(Angle, Length))
@@ -95,29 +109,45 @@ class Building(NodeType):
     print()
       
    
-    # 
+    # Put it all together!
+
     part = solid.utils.part()
-    part(self['Foundation']())
-    part(self['SillPlate']())
+    
+    if 'Foundation' in self:
+      part(self['Foundation']())
+    
+    if 'SillPlate' in self:
+      part(self['SillPlate']())
+    
+    if 'ExteriorWalls1' in self:
+      part(self['ExteriorWalls1']())
+
     return part
    
 
 class Foundation(NodeType):
-  
+  SlabThickness = None
   def __call__(self):
+    self.SlabThickness = self.SlabThickness or self.Parent.SlabThickness
+
     p = solid.polygon([(ps.X2, ps.Y2) for ps in self.Parent.Perimeter])
-    p = solid.linear_extrude(6)(p)
-    p = solid.utils.down(6)(p)
+    p = solid.linear_extrude(self.SlabThickness)(p)
+    p = solid.utils.down(self.SlabThickness)(p)
     p = solid.color([.3,.3,.3])(p)
     return p    
 
 
 class SillPlate(NodeType):
+  Thickness = None
+  Width = None
   
   def __call__(self):
+    self.Width = self.Width or self.Parent.ExteriorWallWidth
+    self.Thickness = self.Thickness or self.Parent.SillPlateThickness
+
     part = solid.part()
     for ps in self.Parent.Perimeter:
-      p = solid.cube([ps.Length, 6, 2])
+      p = solid.cube([ps.Length, self.Width, self.Thickness])
       p = solid.rotate(ps.Angle)(p)
       p = solid.translate([ps.X1, ps.Y1])(p)
       p = solid.color([0,0,1])(p)
@@ -125,6 +155,41 @@ class SillPlate(NodeType):
     return part 
 
 
+class ExteriorWalls(NodeType):
+  Width = None
+  Thickness = 2
+  def __call__(self):
+    self.Width = self.Width or self.Parent.ExteriorWallWidth
+
+    part = solid.part()
+    for ps in self.Parent.Perimeter:
+      part2 = solid.part()
+
+      p = solid.cube([ps.Length, self.Width, self.Thickness])
+      p = solid.translate([0, 0, 2])(p)
+      p = solid.color([0,1,0])(p)
+      part2(p)
+      
+      p = solid.cube([ps.Length, self.Width, self.Thickness])
+      p = solid.translate([0,0,144])(p)
+      p = solid.color([0,1,0])(p)
+      part2(p)
+      
+      for i in list(range(0, ps.Length-4, 24)) + [ps.Length - 2]:
+        p = solid.cube([2, self.Width, 144-4])
+        p = solid.translate([i,0,4])(p)
+        p = solid.color([0,1,0])(p)
+        part2(p)
+      
+      part2 = solid.rotate(ps.Angle)(part2)
+      part2 = solid.translate([ps.X1, ps.Y1, 0])(part2)
+      
+      
+
+      part(part2)
+        
+
+    return part 
 
 
 class Stud(NodeType):
