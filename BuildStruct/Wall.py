@@ -14,10 +14,11 @@ def wallrange(start, stop, *, StudSpacing=16, StudThickness=1.5):
 
 
 class Wall(Part):
-  def __init__(self, *, X, Y, A, L, H, StartOffset=False, EndOffset=False):
+  def __init__(self, *, X, Y, Z=0, A, L, H=96, StartOffset=False, EndOffset=False):
     super().__init__()
     self.X = X
     self.Y = Y
+    self.Z = Z
     self.A = A
     self.L = L
     self.H = H
@@ -48,7 +49,7 @@ class Wall(Part):
     p(translate([self.StartOffset,0,self.H-self.StudThickness])(cube([self.L - self.StartOffset - self.EndOffset, self.StudWidth, self.StudThickness])))
 
     r = rotate(self.A)(p)
-    t = translate([self.X, self.Y, 0])(r)
+    t = translate([self.X, self.Y, self.Z])(r)
 
     z = color(self.C)(t)
 
