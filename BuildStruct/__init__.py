@@ -1,56 +1,70 @@
 # vim:fileencoding=utf-8:ts=2:sw=2:sts=2:expandtab
 
-from solid import scad_render
-from solid.objects import cube, cylinder, difference, translate, union
-from solid.utils import right, part, rotate, color
+#from solid import scad_render
+#from solid import objects #import cube, cylinder, difference, translate, union
+#from solid.utils import right, part, rotate, color
+
+import solid.objects
+import solid.utils
 
 
 
-class Part():
-  def __init__(self):
-    super().__init__()
-    self.Things = []
+class Node(list):
+  def __iadd__(self, other):
+    self.append(other)
+    return self
 
-  def __call__(self, *things):
-    self.Things += things
 
-  def Generate(self):
-    p = part()
-    for thing in self.Things:
-      if isinstance(thing, Part):
-        p(thing.Generate())
-      else:
-        p(thing)
-    return p
-  
-
-class Model(Part):
-  def __init__(self):
+class Model(Node):
+  def __init__(self, *, Path):
     super().__init__()
     self.SEGMENTS = 48
     self.Output = None
+    self.Path = Path
     
-  def __call__(self, thing):
-    self.Things.append(thing)
-    return thing
+  def __call__(self):
+    part = solid.utils.part()
 
-  def Render(self):
-    p = self.Generate()
-    self.Output = scad_render(p, file_header=f'$fn = {self.SEGMENTS};')
+    for node in self:
+      part(node())
+    
+    self.Output = solid.scad_render(part, file_header=f'$fn = {self.SEGMENTS};')
+
+    if self.Path: 
+      with open(self.Path, 'wt') as f:
+        f.write(self.Output)
+
+    return part
+
+
+
+class Building(Node):
+  def __init__(self):
+    super().__init__()
+    self.Studs = []
+    self.Studs.append(Stud())
+
+  def __call__(self):
+    part = solid.utils.part()
+
+    for stud in self.Studs:
+      part(stud())
+
+    return part
+    
   
-  def Write(self, path):
-    if self.Output is None: 
-      self.Render()
-    with open(path, 'wt') as f:
-      f.write(self.Output)
 
-      
-  def Wall(self, *args, **kwargs):
-    return self(Modules.Wall(*args, **kwargs))
-   
+class Stud(Node):
+  def __init__(self):
+    super().__init__()
+  
+  def __call__(self):
+    cube = solid.objects.cube([1.5, 6, 144])
+    import pdb; pdb.set_trace()
+    return cube
 
-class Modules():
-  from .Wall import Wall
+
+
 
 
 
